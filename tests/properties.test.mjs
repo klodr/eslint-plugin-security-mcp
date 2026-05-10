@@ -6,8 +6,10 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  codepointHex,
   findInjectionKeyword,
   looksLikeText,
+  previewOf,
   tryDecodeBase64AsText,
 } from '../src/rules/no-encoded-prompt-injection.helpers.js';
 
@@ -58,5 +60,32 @@ describe('helper invariants (property-based)', () => {
       }),
       { numRuns: 200 },
     );
+  });
+
+  it('previewOf returns a JSON-stringified string capped at max chars + ellipsis', () => {
+    fc.assert(
+      fc.property(fc.string(), fc.integer({ min: 1, max: 200 }), (text, max) => {
+        const result = previewOf(text, max);
+        expect(typeof result).toBe('string');
+        expect(result.startsWith('"')).toBe(true);
+        expect(result.endsWith('"')).toBe(true);
+      }),
+      { numRuns: 100 },
+    );
+    expect(previewOf('short')).toBe('"short"');
+    expect(previewOf('x'.repeat(100), 10)).toBe('"xxxxxxxxxx…"');
+  });
+
+  it('codepointHex returns a 4+-digit uppercase hex for any codepoint', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 0x10ffff }), (cp) => {
+        const ch = String.fromCodePoint(cp);
+        const result = codepointHex(ch);
+        expect(result).toMatch(/^[0-9A-F]{4,6}$/);
+      }),
+      { numRuns: 100 },
+    );
+    expect(codepointHex('A')).toBe('0041');
+    expect(codepointHex('​')).toBe('200B');
   });
 });

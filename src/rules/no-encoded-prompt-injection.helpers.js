@@ -73,6 +73,9 @@ function tryDecodeBase64AsText(s) {
   const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
 
   let buf;
+  /* v8 ignore next 4 -- Buffer.from('base64') is permissive and never throws on
+     ASCII input; the catch is a defensive fail-closed guard for hypothetical
+     runtime API changes. Not exercised by tests. */
   try {
     buf = Buffer.from(padded, 'base64');
   } catch {
