@@ -1,0 +1,35 @@
+# CI for eslint-plugin-mcp-security.
+#
+# Uses the reusable workflows hosted in klodr/.github.
+#
+# NOTE: pinned to @main initially. Once klodr/.github has tagged
+# releases or known-good commit SHAs, replace `@main` with `@<sha>`
+# or `@<tag>` for reproducibility. Search this file for "@main".
+
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Lint & test
+    uses: klodr/.github/.github/workflows/reusable-node-ci.yml@main
+    with:
+      node-version: '20'
+      package-manager: 'npm'
+      run-lint: true
+      run-test: true
+      run-typecheck: false
+
+  secrets:
+    name: Gitleaks
+    uses: klodr/.github/.github/workflows/reusable-gitleaks.yml@main
+    with:
+      config-path: .gitleaks.toml
+    secrets:
+      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}

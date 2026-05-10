@@ -1,0 +1,41 @@
+/**
+ * Copyright 2026 klodr
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import mcpSecurity from './src/index.js';
+
+export default [
+  {
+    ignores: ['node_modules/', 'coverage/', 'dist/'],
+  },
+  // Apply our own rule to ourselves (dogfooding) — excluded for tests/
+  // which intentionally contain encoded strings as fixtures.
+  {
+    files: ['src/**/*.js'],
+    plugins: { 'mcp-security': mcpSecurity },
+    rules: {
+      'mcp-security/no-encoded-prompt-injection': 'error',
+    },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: {
+        Buffer: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+        module: 'writable',
+        require: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-undef': 'error',
+    },
+  },
+];

@@ -1,0 +1,64 @@
+{
+  "name": "eslint-plugin-mcp-security",
+  "version": "0.1.0",
+  "description": "ESLint rules to detect prompt-injection vectors in Model Context Protocol server code",
+  "license": "Apache-2.0",
+  "author": "klodr",
+  "homepage": "https://github.com/klodr/eslint-plugin-mcp-security",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klodr/eslint-plugin-mcp-security.git"
+  },
+  "bugs": {
+    "url": "https://github.com/klodr/eslint-plugin-mcp-security/issues"
+  },
+  "type": "commonjs",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src/",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "prompt-injection",
+    "llm",
+    "base64",
+    "unicode"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "husky || true"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs}": [
+      "eslint --max-warnings=0 --no-warn-ignored"
+    ]
+  },
+  "peerDependencies": {
+    "eslint": ">=9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
