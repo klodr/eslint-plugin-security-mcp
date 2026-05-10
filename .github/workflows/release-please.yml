@@ -89,8 +89,19 @@ jobs:
               github.rest.actions.listWorkflowRunsForRepo,
               { owner: context.repo.owner, repo: context.repo.repo, head_sha: sha, per_page: 100 },
             );
-            const ok = required.every((name) =>
-              runs.some((r) => r.name === name && r.conclusion === "success"),
+            // Group runs by workflow name and pick the most recent one;
+            // a re-run that later failed must NOT be masked by an earlier
+            // success. Only the latest attempt's conclusion counts.
+            const latestByName = new Map();
+            for (const r of runs) {
+              if (!required.includes(r.name)) continue;
+              const prev = latestByName.get(r.name);
+              if (!prev || new Date(r.created_at) > new Date(prev.created_at)) {
+                latestByName.set(r.name, r);
+              }
+            }
+            const ok = required.every(
+              (name) => latestByName.get(name)?.conclusion === "success",
             );
             core.info(`SHA ${sha}: required=${JSON.stringify(required)} all-success=${ok}`);
             core.setOutput("ready", ok ? "true" : "false");
