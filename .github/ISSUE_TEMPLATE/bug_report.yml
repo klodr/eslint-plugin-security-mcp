@@ -24,7 +24,8 @@ body:
         const x = "...";
         ```
         ```js
-        // eslint.config.js
+        // eslint.config.mjs
+        import mcpSecurity from 'eslint-plugin-mcp-security';
         export default [
           { plugins: { 'mcp-security': mcpSecurity },
             rules: { 'mcp-security/no-encoded-prompt-injection': 'error' } },

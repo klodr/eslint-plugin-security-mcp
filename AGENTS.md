@@ -92,9 +92,9 @@ For every new commit being pushed:
 
 Then once per push:
 
-3. `npm run lint`
-4. `npm test`
-5. `npm audit --audit-level=high`
+1. `npm run lint`
+2. `npm test`
+3. `npm audit --audit-level=high`
 
 Bypass with `git push --no-verify` only when the hook itself is wrong
 (rare). The bypass is recorded in the local reflog.
@@ -116,7 +116,7 @@ Bypass with `git push --no-verify` only when the hook itself is wrong
 
 ## Source layout
 
-```
+```text
 src/
   index.js                              plugin entrypoint (CommonJS)
   rules/
