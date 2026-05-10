@@ -9,7 +9,7 @@ import {
   findInjectionKeyword,
   looksLikeText,
   tryDecodeBase64AsText,
-} from '../src/rules/no-encoded-prompt-injection.js';
+} from '../src/rules/no-encoded-prompt-injection.helpers.js';
 
 describe('helper invariants (property-based)', () => {
   it('tryDecodeBase64AsText returns null or a UTF-8 string for any input', () => {
