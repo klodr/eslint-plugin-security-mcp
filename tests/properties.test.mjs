@@ -69,6 +69,10 @@ describe('helper invariants (property-based)', () => {
         expect(typeof result).toBe('string');
         expect(result.startsWith('"')).toBe(true);
         expect(result.endsWith('"')).toBe(true);
+        const parsed = JSON.parse(result);
+        expect(parsed.length).toBeLessThanOrEqual(max + 1);
+        if (text.length > max) expect(parsed.endsWith('…')).toBe(true);
+        else expect(parsed).toBe(text);
       }),
       { numRuns: 100 },
     );
@@ -82,6 +86,7 @@ describe('helper invariants (property-based)', () => {
         const ch = String.fromCodePoint(cp);
         const result = codepointHex(ch);
         expect(result).toMatch(/^[0-9A-F]{4,6}$/);
+        expect(Number.parseInt(result, 16)).toBe(cp);
       }),
       { numRuns: 100 },
     );
