@@ -1,5 +1,11 @@
 # eslint-plugin-mcp-security
 
+[![npm version](https://img.shields.io/npm/v/eslint-plugin-mcp-security.svg)](https://www.npmjs.com/package/eslint-plugin-mcp-security)
+[![CI](https://github.com/klodr/eslint-plugin-mcp-security/actions/workflows/ci.yml/badge.svg)](https://github.com/klodr/eslint-plugin-mcp-security/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/klodr/eslint-plugin-mcp-security/actions/workflows/codeql.yml/badge.svg)](https://github.com/klodr/eslint-plugin-mcp-security/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/klodr/eslint-plugin-mcp-security/badge)](https://scorecard.dev/viewer/?uri=github.com/klodr/eslint-plugin-mcp-security)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 ESLint rules to detect prompt-injection vectors hidden in
 [Model Context Protocol](https://modelcontextprotocol.io) server code.
 
