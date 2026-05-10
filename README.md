@@ -114,8 +114,9 @@ CI                            → eslint full scan + gitleaks + OSV-Scanner + ..
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md). All contributions are licensed
-under Apache-2.0 via [DCO](https://developercertificate.org/) sign-off.
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md). All contributions are
+licensed under Apache-2.0 via [DCO](https://developercertificate.org/)
+sign-off.
 
 ## License
 
