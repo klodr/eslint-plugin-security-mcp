@@ -12,5 +12,5 @@ useDefault = true
 [allowlist]
 description = "Test fixtures contain intentional base64 strings"
 paths = [
-  '''test/.*\.test\.js$''',
+  '''test/.*\.test\.(js|mjs)$''',
 ]
