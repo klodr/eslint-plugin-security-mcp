@@ -37,7 +37,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "lint:md": "markdownlint-cli2 \"**/*.md\"",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
