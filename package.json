@@ -57,6 +57,9 @@
     "*.md": [
       "prettier --write",
       "markdownlint-cli2"
+    ],
+    "*.{json,jsonc,json5}": [
+      "prettier --write"
     ]
   },
   "peerDependencies": {
