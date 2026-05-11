@@ -65,10 +65,13 @@ failing in CI.
 
 - Framework: **vitest** (`vitest run`).
 - Lives in `test/`, name pattern `*.test.mjs` (ESM).
-- Tests use ESLint's built-in `RuleTester` from
-  `eslint/use-at-your-own-risk`. Each rule must have BOTH `valid` and
-  `invalid` cases, and invalid cases must assert the `messageId`
-  (not just a substring of the rendered message).
+- Tests use ESLint's built-in `RuleTester` from the `"eslint"` entry
+  (re-exported from the main package since ESLint 10). The legacy
+  `"eslint/use-at-your-own-risk"` path no longer exposes `RuleTester`
+  on ESLint 10 — it now holds `builtinRules` only. Each rule must
+  have BOTH `valid` and `invalid` cases, and invalid cases must
+  assert the `messageId` (not just a substring of the rendered
+  message).
 
 ## Commits
 
