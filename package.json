@@ -47,16 +47,16 @@
   },
   "lint-staged": {
     "*.{js,mjs,cjs}": [
-      "eslint --max-warnings=0 --no-warn-ignored",
-      "prettier --write"
+      "prettier --write",
+      "eslint --max-warnings=0 --no-warn-ignored"
     ],
     "*.{yml,yaml}": [
-      "yamllint",
-      "prettier --write"
+      "prettier --write",
+      "yamllint"
     ],
     "*.md": [
-      "markdownlint-cli2",
-      "prettier --write"
+      "prettier --write",
+      "markdownlint-cli2"
     ]
   },
   "peerDependencies": {
