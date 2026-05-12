@@ -80,7 +80,7 @@ describe("helpers — deterministic tail-return coverage", () => {
 
   it("codepointHex pads to four uppercase hex digits", () => {
     expect(codepointHex("A")).toBe("0041");
-    expect(codepointHex("​")).toBe("200B");
+    expect(codepointHex("\u200B")).toBe("200B");
   });
 
   it("codepointHex expands to six digits for supplementary characters", () => {
