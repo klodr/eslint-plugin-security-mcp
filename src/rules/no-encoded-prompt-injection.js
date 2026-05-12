@@ -8,6 +8,7 @@
 const {
   INVISIBLE_UNICODE,
   tryDecodeBase64AsText,
+  extractBase64Candidates,
   findInjectionKeyword,
   previewOf,
   codepointHex,
@@ -51,9 +52,17 @@ const rule = {
         });
       }
 
-      // 2. Base64 → text
-      const decoded = tryDecodeBase64AsText(value);
-      if (decoded) {
+      // 2. Base64 → text. Iterate over every base64-shaped substring inside
+      // `value`: the iterator yields the whole literal when it is itself
+      // base64-shaped (preserving previous behaviour), AND each embedded
+      // base64-shaped token when the payload is hidden inside surrounding
+      // prose (e.g. `"Use this tool: <payload> please."`). Stop after the
+      // first decoded hit — one finding per literal is enough to motivate
+      // a fix and avoids duplicate reports when an author concatenates
+      // several payloads.
+      for (const candidate of extractBase64Candidates(value)) {
+        const decoded = tryDecodeBase64AsText(candidate);
+        if (!decoded) continue;
         const keyword = findInjectionKeyword(decoded);
         if (keyword) {
           context.report({
@@ -68,6 +77,7 @@ const rule = {
             data: { preview: previewOf(decoded) },
           });
         }
+        break;
       }
     }
 
