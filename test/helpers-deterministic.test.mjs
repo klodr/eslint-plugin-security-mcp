@@ -31,10 +31,16 @@ describe("helpers — deterministic tail-return coverage", () => {
   });
 
   it("tryDecodeBase64AsText returns null on round-trip mismatch", () => {
-    // A string that matches the base64 candidate regex but is NOT
-    // strict base64 (mixed standard + url-safe alphabet that fails
-    // the re-encode comparison).
-    expect(tryDecodeBase64AsText("AAAA-_+/AAAAAAAAAAAAAAAA")).toBeNull();
+    // 25 chars (length % 4 === 1) — the script pads to 28 with three
+    // trailing `=`, which is invalid base64 (a 4-char group accepts
+    // at most two `=` of padding). Node's lenient `Buffer.from` drops
+    // the malformed final group and decodes only the first 24 chars
+    // (18 bytes of 0x00). The re-encode of those zero bytes is the
+    // bare 24-A string with no `B` — so the stripped-padding
+    // comparison fails and `tryDecodeBase64AsText` short-circuits on
+    // the round-trip guard *before* `looksLikeText` would otherwise
+    // also return false. That is the only branch this test pins.
+    expect(tryDecodeBase64AsText("AAAAAAAAAAAAAAAAAAAAAAAAB")).toBeNull();
   });
 
   it("tryDecodeBase64AsText returns null on SRI hash prefix", () => {
