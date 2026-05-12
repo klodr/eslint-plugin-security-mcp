@@ -55,7 +55,11 @@ jobs:
         # npm publishes in steps: version metadata → tarball → provenance
         # attestations → registry signatures. Polling on .version alone
         # races against .dist.attestations.url or .dist.signatures still
-        # being absent when Path 1 runs. Wait for all three.
+        # being absent when Path 1 runs. Wait for all three, then persist
+        # the validated packument under $RUNNER_TEMP and expose its path
+        # via $GITHUB_ENV so Path 1 below can reuse THIS snapshot instead
+        # of running a fresh `npm view` (which would reintroduce the same
+        # propagation race that this step exists to defeat).
         run: |
           VERSION="${TAG#v}"
           # Allow ~5 min total. Attestation / signature propagation can
@@ -68,6 +72,9 @@ jobs:
             ATT_OK=$(printf '%s' "$META" | jq -r '.dist.attestations.url // ""')
             SIG_OK=$(printf '%s' "$META" | jq -r '.dist.signatures | length // 0')
             if [ "$VER_OK" = "$VERSION" ] && [ -n "$ATT_OK" ] && [ "${SIG_OK:-0}" -ge 1 ]; then
+              META_PATH="$RUNNER_TEMP/npm-meta.json"
+              printf '%s' "$META" > "$META_PATH"
+              echo "NPM_META_PATH=$META_PATH" >> "$GITHUB_ENV"
               echo "npm OK: ${PKG}@${VERSION} (attestations: $ATT_OK, signatures: $SIG_OK)"
               exit 0
             fi
@@ -84,7 +91,11 @@ jobs:
         # current npm standard), then install the local file.
         run: |
           VERSION="${TAG#v}"
-          META=$(npm view "${PKG}@${VERSION}" --json)
+          # Reuse the packument validated by the wait step above (path
+          # exported via $GITHUB_ENV). Re-running `npm view` here would
+          # race against attestation / signature propagation a second
+          # time on busy days.
+          META=$(cat "$NPM_META_PATH")
           ATT=$(echo "$META" | jq -er '.dist.attestations.url')
           TARBALL_URL=$(echo "$META" | jq -er '.dist.tarball')
           EXPECTED_SHA=$(echo "$META" | jq -er '.dist.shasum')
@@ -96,6 +107,25 @@ jobs:
           echo "Expected sha1=$EXPECTED_SHA"
           echo "Expected $ALGO=$EXPECTED_B64"
           mkdir verify-tmp && cd verify-tmp
+          # Fetch the attestation document itself. The packument carrying
+          # `.dist.attestations.url` is not enough on its own: a stale,
+          # empty, or temporarily-unreachable document would otherwise
+          # let Path 1 pass silently. Validate that the body is non-empty
+          # AND that the first JSONL row is a DSSE bundle (`.payloadType`).
+          curl --fail --show-error --silent --location \
+               --retry 3 --retry-all-errors \
+               --connect-timeout 10 --max-time 120 \
+               -o npm-attestations.jsonl "$ATT"
+          test -s npm-attestations.jsonl || {
+            echo "ERROR: npm attestation document at $ATT is empty" >&2
+            exit 1
+          }
+          head -1 npm-attestations.jsonl | jq -e '.payloadType' > /dev/null || {
+            echo "ERROR: npm attestation document is not valid DSSE JSONL (first line missing .payloadType)" >&2
+            head -1 npm-attestations.jsonl >&2
+            exit 1
+          }
+          echo "npm attestations: $(wc -l < npm-attestations.jsonl) row(s) fetched from $ATT"
           curl --fail --show-error --silent --location \
                --retry 3 --retry-all-errors \
                --connect-timeout 10 --max-time 120 \
@@ -187,6 +217,48 @@ jobs:
           for f in index.js index.js.sigstore index.js.intoto.jsonl; do
             test -f "verify-assets/$f" || { echo "ERROR: release asset missing: $f" >&2; exit 1; }
           done
+
+      - name: Bind .intoto.jsonl subject digest to verify-assets/index.js
+        # The DSSE envelope in `.intoto.jsonl` carries the artifact's
+        # sha256 inside `.subject[].digest.sha256`. Pure existence of the
+        # file (asserted above) is not enough — a stale or swapped
+        # `.intoto.jsonl` uploaded out of band would still pass Paths 2/3
+        # because those re-derive their target from the BLOB, not the
+        # JSONL. Decode the DSSE payload, find the subject entry whose
+        # name matches index.js, and refuse to proceed if its digest
+        # doesn't match the actual artifact bytes.
+        run: |
+          set -euo pipefail
+          # DSSE: one JSON line; `.payload` is base64-encoded in-toto
+          # Statement (v0.1 or v1). `actions/attest-build-provenance`
+          # currently emits v1 (`https://in-toto.io/Statement/v1`).
+          PAYLOAD=$(jq -r '.payload' verify-assets/index.js.intoto.jsonl \
+                    | base64 -d)
+          if ! echo "$PAYLOAD" | jq -e '.subject' > /dev/null; then
+            echo "ERROR: .intoto.jsonl payload missing .subject array" >&2
+            exit 1
+          fi
+          # Match on either the bare basename (what attest-build-provenance
+          # uses by default when fed a single subject-path) OR the full
+          # workspace-relative path some emitters use.
+          EXPECTED_SHA256=$(echo "$PAYLOAD" | jq -r '
+            .subject[]
+              | select(.name == "index.js" or .name == "verify-assets/index.js")
+              | .digest.sha256 // empty')
+          if [ -z "$EXPECTED_SHA256" ]; then
+            echo "ERROR: .intoto.jsonl has no sha256 subject for index.js" >&2
+            echo "  subjects in payload:" >&2
+            echo "$PAYLOAD" | jq '.subject' >&2
+            exit 1
+          fi
+          ACTUAL_SHA256=$(sha256sum verify-assets/index.js | awk '{print $1}')
+          if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+            echo "ERROR: .intoto.jsonl subject digest does not match index.js" >&2
+            echo "  intoto says: $EXPECTED_SHA256" >&2
+            echo "  actual:      $ACTUAL_SHA256" >&2
+            exit 1
+          fi
+          echo "intoto subject binding OK: index.js sha256=$EXPECTED_SHA256"
 
       - name: Path 2 — gh attestation verify
         # Pin the exact Fulcio SAN (workflow path + ref) and the source ref.
