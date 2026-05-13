@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.2.0...v0.2.1) (2026-05-13)
+
+
+### Fixed
+
+* **ci:** add top-level permissions: contents: read to auto-merge ([#39](https://github.com/klodr/eslint-plugin-security-mcp/issues/39)) ([dd4636d](https://github.com/klodr/eslint-plugin-security-mcp/commit/dd4636d8429fed0618c11af894638cd2be0fb030))
+* **ci:** align auto-merge filter on klodr-release-please[bot] ([#22](https://github.com/klodr/eslint-plugin-security-mcp/issues/22)) ([97d0b19](https://github.com/klodr/eslint-plugin-security-mcp/commit/97d0b193ef903743927d2875f650b1c6a25e130e))
+* **ci:** drop paths filter on actions-pinned ([#20](https://github.com/klodr/eslint-plugin-security-mcp/issues/20)) ([9811b42](https://github.com/klodr/eslint-plugin-security-mcp/commit/9811b427ae884301aefa16bc4ccfdc378c29b548))
+* **ci:** repin reusable auto-merge to a reachable SHA ([#24](https://github.com/klodr/eslint-plugin-security-mcp/issues/24)) ([f8a77e1](https://github.com/klodr/eslint-plugin-security-mcp/commit/f8a77e10d340cc4255d6393a8ad98a545b35c09e))
+* **lint:** drain CR findings + valid globs syntax ([#17](https://github.com/klodr/eslint-plugin-security-mcp/issues/17)) ([cff85f1](https://github.com/klodr/eslint-plugin-security-mcp/commit/cff85f1d12e2ff78ef83983552567288199354c8))
+* **pinact:** dot-prefix config + recursive action globs ([#19](https://github.com/klodr/eslint-plugin-security-mcp/issues/19)) ([6cc71e3](https://github.com/klodr/eslint-plugin-security-mcp/commit/6cc71e3294cfe79b524044000cafb4f9fd258a81))
+* **pre-commit:** call ./node_modules/.bin/lint-staged directly ([#32](https://github.com/klodr/eslint-plugin-security-mcp/issues/32)) ([a352dbd](https://github.com/klodr/eslint-plugin-security-mcp/commit/a352dbdc0c18171052dc14b755613ad7f9918aac))
+* **rule:** catch short, embedded, and pseudo-SRI base64 payloads ([#38](https://github.com/klodr/eslint-plugin-security-mcp/issues/38)) ([711dccf](https://github.com/klodr/eslint-plugin-security-mcp/commit/711dccf5a9074fb497865aa9e8492e62a4e75cd5))
+* **setup:** drop husky || true fallback from prepare script ([#27](https://github.com/klodr/eslint-plugin-security-mcp/issues/27)) ([b1f5669](https://github.com/klodr/eslint-plugin-security-mcp/commit/b1f56699e65397d6d97b1a359ad630a5ae5b5d15))
+
+
+### Changed
+
+* add leak-detect caller workflow ([#33](https://github.com/klodr/eslint-plugin-security-mcp/issues/33)) ([ab55943](https://github.com/klodr/eslint-plugin-security-mcp/commit/ab5594379f375a90853c69dcdc289474ac0e325f))
+* add pinact config + actions-pinned CI gate ([#15](https://github.com/klodr/eslint-plugin-security-mcp/issues/15)) ([5b437f7](https://github.com/klodr/eslint-plugin-security-mcp/commit/5b437f7daa43394428b81a312f01412650cbad94))
+* add prettier + eslint-config-prettier ([#26](https://github.com/klodr/eslint-plugin-security-mcp/issues/26)) ([3179f64](https://github.com/klodr/eslint-plugin-security-mcp/commit/3179f64fed84ba4e1c66f9bedf8ad95d3e95bce6))
+* add Verify published release workflow ([#37](https://github.com/klodr/eslint-plugin-security-mcp/issues/37)) ([f51a5ef](https://github.com/klodr/eslint-plugin-security-mcp/commit/f51a5ef54c85410c7d064166b1ce6f3a48683794))
+* add yamllint+markdownlint+commitlint pack ([#14](https://github.com/klodr/eslint-plugin-security-mcp/issues/14)) ([6495664](https://github.com/klodr/eslint-plugin-security-mcp/commit/6495664f823cffcd839cff5017b71630cfd60579))
+* bump actions/checkout from 4.2.2 to 6.0.2 ([#21](https://github.com/klodr/eslint-plugin-security-mcp/issues/21)) ([0800aca](https://github.com/klodr/eslint-plugin-security-mcp/commit/0800aca277f9c3b6ec67cec4a0cd901ba94a1ac4))
+* fix four workflow errors (pinact, gitleaks, auto-merge, coderabbit) ([#35](https://github.com/klodr/eslint-plugin-security-mcp/issues/35)) ([fab136b](https://github.com/klodr/eslint-plugin-security-mcp/commit/fab136b039435e66ea6dbd6670640fa55da085f8))
+* **husky:** adopt shared pre-push template ([#16](https://github.com/klodr/eslint-plugin-security-mcp/issues/16)) ([7588781](https://github.com/klodr/eslint-plugin-security-mcp/commit/758878116202254a55409be7759113f85f3024cd))
+* **lint-staged:** add JSON / JSONC / JSON5 glob ([#29](https://github.com/klodr/eslint-plugin-security-mcp/issues/29)) ([5f081f0](https://github.com/klodr/eslint-plugin-security-mcp/commit/5f081f0bb6a8ce2c4cd1f895ba235d531cbabd4c))
+* **lint:** reactivate 6 markdownlint rules previously disabled ([#36](https://github.com/klodr/eslint-plugin-security-mcp/issues/36)) ([ffcaefc](https://github.com/klodr/eslint-plugin-security-mcp/commit/ffcaefccdc9dcdbe517c22cc67543f57de539333))
+* migrate ci.yml to reusable-node-ci (pilot) ([#25](https://github.com/klodr/eslint-plugin-security-mcp/issues/25)) ([0dd1fdf](https://github.com/klodr/eslint-plugin-security-mcp/commit/0dd1fdf6d4968ea448ab7d592ff24bf088da04be))
+* **node:** add packageManager + .nvmrc + .npmrc engine-strict ([#30](https://github.com/klodr/eslint-plugin-security-mcp/issues/30)) ([3332509](https://github.com/klodr/eslint-plugin-security-mcp/commit/333250932b14401d923f9d9d36b187e4a48d972e))
+* **pre-commit:** warn on missing system tooling (yamllint) ([#28](https://github.com/klodr/eslint-plugin-security-mcp/issues/28)) ([88e66b9](https://github.com/klodr/eslint-plugin-security-mcp/commit/88e66b9ccf3ae626908a4d1d624969c3dc72faf6))
+* **pre-push:** sync with canonical template (SC2034 + drop npm audit) ([#31](https://github.com/klodr/eslint-plugin-security-mcp/issues/31)) ([fe82d3a](https://github.com/klodr/eslint-plugin-security-mcp/commit/fe82d3a88240dfc48ca0c7589ff0f46c1b9c9f19))
+
 ## [0.2.0](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.1.0...v0.2.0) (2026-05-10)
 
 ### Added
