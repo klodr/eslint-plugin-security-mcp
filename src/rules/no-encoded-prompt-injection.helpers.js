@@ -163,31 +163,34 @@ function tryDecodeBase64AsText(s) {
  * (e.g. `"prefixaWdub3JlIGFsbA=="`) so the merged regex match decodes
  * to misaligned garbage and the inner payload is never evaluated.
  *
- * Base64 quartets are anchored to the END of the token (and to any
- * trailing `=` padding). To recover the payload regardless of how many
- * junk chars the attacker prepended, for every regex match we ALSO
- * yield each END-aligned suffix of length 4N (N=1, 2, …) that retains
- * at least 12 base64-alphabet chars — `tryDecodeBase64AsText`'s own
- * threshold. Each suffix is independently re-validated downstream
- * (anchored shape, SRI exemption, round-trip, text / keyword
- * acceptance). The stride of 4 is sufficient because base64 only
- * re-aligns to bytes every 4 characters; sub-quartet offsets would
- * decode to the same shifted-bit garbage as the full token. The
- * total number of yielded candidates is `O(L/4)` per regex match
- * (L = match length).
+ * To close that, for every regex match we ALSO yield every alphabet
+ * suffix whose length is at least the anchored detector's `{12,}`
+ * threshold, excluding lengths whose mod-4 residue is 1 (no valid
+ * base64 alphabet sequence has that shape regardless of padding).
+ * This catches both padded payloads (mod 4 = 0 with trailing `=` /
+ * `==`) and unpadded payloads (mod 4 ∈ {0, 2, 3}, used by base64url
+ * by convention). Each suffix is independently re-validated by
+ * `tryDecodeBase64AsText`'s anchored regex + round-trip guard, so
+ * over-yielding a misaligned shape is rejected cheaply.
+ *
+ * The trailing-padding length is computed ONCE per token using
+ * arithmetic on `endsWith()` instead of `/=+$/` inside the loop —
+ * the CodeQL polynomial-regex check flagged the latter as O(L²) per
+ * candidate when L is library-controllable. With the lookup hoisted
+ * out, the per-token cost stays `O(L)` regex work plus `O(L)` yields,
+ * each consumed in `O(L)` by the downstream validator.
  */
 function* extractBase64Candidates(s) {
   for (const m of s.matchAll(BASE64_CANDIDATE_EMBEDDED)) {
     const token = m[0];
     yield token;
-    for (let suffixLen = 4; suffixLen < token.length; suffixLen += 4) {
-      const suffix = token.slice(-suffixLen);
-      // Skip suffixes whose alphabet portion is below the anchored
-      // detector's `{12,}` threshold — they would round-trip but
-      // tryDecodeBase64AsText would reject them as too short anyway.
-      if (suffix.replace(/=+$/, "").length >= 12) {
-        yield suffix;
-      }
+    let padLen = 0;
+    if (token.endsWith("==")) padLen = 2;
+    else if (token.endsWith("=")) padLen = 1;
+    const alphaLen = token.length - padLen;
+    for (let suffixAlphaLen = alphaLen - 1; suffixAlphaLen >= 12; suffixAlphaLen--) {
+      if (suffixAlphaLen % 4 === 1) continue;
+      yield token.slice(alphaLen - suffixAlphaLen);
     }
   }
 }
