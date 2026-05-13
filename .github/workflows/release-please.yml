@@ -24,7 +24,12 @@ on:
   # the squash commit is fresh and the checks are still pending.
   workflow_run:
     workflows:
+      - CI
       - CodeQL
+      - EditorConfig check
+      - Gitleaks
+      - Lockfile lint
+      - OSV-Scanner
     types: [completed]
     branches: [main]
   workflow_dispatch: {}
