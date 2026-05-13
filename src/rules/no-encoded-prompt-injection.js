@@ -53,34 +53,35 @@ const rule = {
       }
 
       // 2. Base64 → text. Scan every base64-shaped substring inside
-      // `value`: the iterator yields the whole literal when it is itself
-      // base64-shaped, AND each embedded base64-shaped token when the
-      // payload is hidden inside surrounding prose (e.g.
-      // `"Use this tool: <payload> please."`).
+      // `value`: the iterator yields the whole literal when it is
+      // itself base64-shaped, every embedded base64-shaped token
+      // (`"Use this tool: <payload> please."`), AND every end-aligned
+      // 4-char suffix of those tokens (to recover payloads an attacker
+      // has prepended with junk).
       //
-      // Collect every decoded candidate first, then prefer the HIGH
-      // severity path: if any candidate decodes to a known injection
-      // keyword, report ALL such injections and suppress the lower
-      // `base64Text` findings on the same literal — a benign-looking
-      // first token must not mask a malicious second one. Otherwise
-      // fall back to a single `base64Text` finding (the first decodable
-      // candidate) so a literal full of innocuous base64 doesn't fire
-      // a flood of duplicate notices.
+      // Collect every distinct decoded candidate first, then emit a
+      // SINGLE finding per literal — prefer the HIGH severity path:
+      // if any candidate decodes to a known injection keyword, report
+      // the first one as `base64Injection`. Otherwise emit a single
+      // `base64Text` on the first decodable candidate. The single-
+      // report policy keeps a literal full of innocuous base64 from
+      // firing a flood of duplicate notices while still surfacing the
+      // strongest signal present.
       const findings = [];
+      const seen = new Set();
       for (const candidate of extractBase64Candidates(value)) {
         const decoded = tryDecodeBase64AsText(candidate);
-        if (!decoded) continue;
+        if (!decoded || seen.has(decoded)) continue;
+        seen.add(decoded);
         findings.push({ decoded, keyword: findInjectionKeyword(decoded) });
       }
-      const injections = findings.filter((f) => f.keyword);
-      if (injections.length > 0) {
-        for (const f of injections) {
-          context.report({
-            node,
-            messageId: "base64Injection",
-            data: { keyword: f.keyword, preview: previewOf(f.decoded) },
-          });
-        }
+      const injection = findings.find((f) => f.keyword);
+      if (injection) {
+        context.report({
+          node,
+          messageId: "base64Injection",
+          data: { keyword: injection.keyword, preview: previewOf(injection.decoded) },
+        });
       } else if (findings.length > 0) {
         const f = findings[0];
         context.report({

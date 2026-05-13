@@ -155,20 +155,40 @@ function tryDecodeBase64AsText(s) {
 }
 
 /**
- * Iterate over base64-shaped substrings of `s` (non-overlapping).
+ * Iterate over base64-shaped subtokens of `s` for the rule's decode loop.
  *
- * Each yielded token is then validated by `tryDecodeBase64AsText`, which
- * re-applies the anchored shape check, the SRI exemption, the round-trip
- * check, and the text-shape / keyword acceptance paths. Callers that want
- * to detect payloads embedded in prose (`"Use: aWdub3JlIGFsbA== now."`)
- * should iterate over this generator instead of calling
- * `tryDecodeBase64AsText` on the entire literal — the anchored variant
- * would miss the embedded payload because the literal as a whole fails
- * the `^…$` shape check.
+ * The non-anchored regex matches the LONGEST contiguous run of base64
+ * alphabet characters at each position. That, alone, leaves a bypass:
+ * an attacker can prepend plain letters directly before a payload
+ * (e.g. `"prefixaWdub3JlIGFsbA=="`) so the merged regex match decodes
+ * to misaligned garbage and the inner payload is never evaluated.
+ *
+ * Base64 quartets are anchored to the END of the token (and to any
+ * trailing `=` padding). To recover the payload regardless of how many
+ * junk chars the attacker prepended, for every regex match we ALSO
+ * yield each END-aligned suffix of length 4N (N=1, 2, …) that retains
+ * at least 12 base64-alphabet chars — `tryDecodeBase64AsText`'s own
+ * threshold. Each suffix is independently re-validated downstream
+ * (anchored shape, SRI exemption, round-trip, text / keyword
+ * acceptance). The stride of 4 is sufficient because base64 only
+ * re-aligns to bytes every 4 characters; sub-quartet offsets would
+ * decode to the same shifted-bit garbage as the full token. The
+ * total number of yielded candidates is `O(L/4)` per regex match
+ * (L = match length).
  */
 function* extractBase64Candidates(s) {
   for (const m of s.matchAll(BASE64_CANDIDATE_EMBEDDED)) {
-    yield m[0];
+    const token = m[0];
+    yield token;
+    for (let suffixLen = 4; suffixLen < token.length; suffixLen += 4) {
+      const suffix = token.slice(-suffixLen);
+      // Skip suffixes whose alphabet portion is below the anchored
+      // detector's `{12,}` threshold — they would round-trip but
+      // tryDecodeBase64AsText would reject them as too short anyway.
+      if (suffix.replace(/=+$/, "").length >= 12) {
+        yield suffix;
+      }
+    }
   }
 }
 
