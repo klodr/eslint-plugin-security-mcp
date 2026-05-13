@@ -184,13 +184,13 @@ function* extractBase64Candidates(s) {
   for (const m of s.matchAll(BASE64_CANDIDATE_EMBEDDED)) {
     const token = m[0];
     yield token;
-    let padLen = 0;
-    if (token.endsWith("==")) padLen = 2;
-    else if (token.endsWith("=")) padLen = 1;
-    const alphaLen = token.length - padLen;
-    for (let suffixAlphaLen = alphaLen - 1; suffixAlphaLen >= 12; suffixAlphaLen--) {
-      if (suffixAlphaLen % 4 === 1) continue;
-      yield token.slice(alphaLen - suffixAlphaLen);
+    let padLength = 0;
+    if (token.endsWith("==")) padLength = 2;
+    else if (token.endsWith("=")) padLength = 1;
+    const alphaLength = token.length - padLength;
+    for (let suffixAlphaLength = alphaLength - 1; suffixAlphaLength >= 12; suffixAlphaLength--) {
+      if (suffixAlphaLength % 4 === 1) continue;
+      yield token.slice(alphaLength - suffixAlphaLength);
     }
   }
 }

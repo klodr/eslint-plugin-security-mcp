@@ -26,12 +26,33 @@ export default [
       // module. Switching to ESM would force a stand-alone build step
       // and break the dogfooding lint of `src/`.
       "unicorn/prefer-module": "off",
-      // Deferred to pass 3 (see plan above). prevent-abbreviations
-      // dominates the noise on every klodr/* MCP (~46% of unicorn
-      // findings); blanket-enabling it before the allowList is sized
-      // would force a manual `// eslint-disable-next-line` on every
-      // `req` / `res` / `args` / `opts` / `ctx` / `err` etc.
-      "unicorn/prevent-abbreviations": "off",
+      // Pass 3: domain-tuned allowList for klodr/* (cross-repo probe).
+      // The shape below allows the abbreviations that ARE idiomatic
+      // in JS/TS + our MCP SDK conventions (Express `req`/`res`,
+      // tool `args`, options bag `opts`, async catch `err`, etc.).
+      // Everything not in this list still flags — non-idiomatic
+      // shortenings like `padLen` / `alphaLen` were renamed inline
+      // to `padLength` / `alphaLength` in the same pass.
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          replacements: {
+            args: false,
+            arg: false,
+            opts: false,
+            msg: false,
+            err: false,
+            res: false,
+            val: false,
+            tmp: false,
+            env: false,
+            pkg: false,
+            obj: false,
+            params: false,
+            ext: false,
+          },
+        },
+      ],
       // `null` is intentional in the rule's helper module: the doc
       // contract on `tryDecodeBase64AsText` / `findInjectionKeyword`
       // is "returns string OR null on no-match". Returning `undefined`
