@@ -44,7 +44,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: klodr/.github/.github/workflows/reusable-auto-merge-release-please.yml@63627d28c0e716176f24f06f4d3cad6c1abf3648
+    uses: klodr/.github/.github/workflows/reusable-auto-merge-release-please.yml@63627d28c0e716176f24f06f4d3cad6c1abf3648 # main @ 2026-05-18
     secrets:
       RELEASE_PLEASE_CLIENT_ID: ${{ secrets.RELEASE_PLEASE_CLIENT_ID }}
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
