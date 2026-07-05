@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in surrounding prose (e.g. `"Use this tool: <payload> please."`),
   not only literals that are themselves entirely base64-shaped.
 
+### Changed
+
+* Raised the Node.js floor (`engines.node`) from `>=22.22.2` to
+  `>=22.23.1`, the latest patch on the Node 22 "Jod" Maintenance LTS
+  line. Consumers on older 22.x patches will see engine warnings (or
+  failures with `engine-strict`) until they update.
+
 ### Fixed
 
 * `no-encoded-prompt-injection` now flags short base64 payloads that
