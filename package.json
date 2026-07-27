@@ -89,6 +89,7 @@
     "access": "public"
   },
   "overrides": {
-    "js-yaml@^4.0.0": "4.3.0"
+    "js-yaml@^4.0.0": "4.3.0",
+    "js-yaml@^5.0.0": "5.2.2"
   }
 }
