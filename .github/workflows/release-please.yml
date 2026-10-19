@@ -22,11 +22,18 @@ on:
   # `push: branches: [main]` directly would race those workflows and
   # the GitHub Release tag-creation call would be rejected because
   # the squash commit is fresh and the checks are still pending.
-  # workflow_run matches the workflow's `name:`, not its file name:
-  # codeql.yml is named "CodeQL Advanced".
+  # workflow_run matches each workflow's `name:`, not its file name
+  # (codeql.yml is "CodeQL Advanced"). List every workflow the gate
+  # below requires, so the LAST one to complete triggers the run that
+  # passes the gate; the names must match the gate's list exactly.
   workflow_run:
     workflows:
+      - CI
       - CodeQL Advanced
+      - EditorConfig check
+      - Gitleaks (secret scanning)
+      - Lockfile lint
+      - OSV-Scanner
     types: [completed]
     branches: [main]
   workflow_dispatch: {}
@@ -75,9 +82,9 @@ jobs:
           script: |
             const required = [
               "CI",
-              "CodeQL",
+              "CodeQL Advanced",
               "EditorConfig check",
-              "Gitleaks",
+              "Gitleaks (secret scanning)",
               "Lockfile lint",
               "OSV-Scanner",
             ];
