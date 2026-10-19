@@ -4,7 +4,7 @@ Public-facing plan for `eslint-plugin-security-mcp`. Items here are
 indicative — actual prioritisation depends on real-world MCP server
 threat reports and user feedback.
 
-## v0.1.0 (current)
+## Shipped (v0.1.0 to v0.3.0)
 
 - Rule `no-encoded-prompt-injection` (base64-as-text + invisible
   Unicode + injection-keyword escalation)
@@ -12,8 +12,10 @@ threat reports and user feedback.
 - Apache-2.0 license, NOTICE file
 - 0 runtime dependencies
 - Test coverage on the detection logic
+- Node.js ≥ 24.18.1, tested on Node 24 and 26 (v0.3.0, 2026-10-19);
+  next floor: Node 26 once Node 24 reaches end of life (2028-04-30)
 
-## v0.2.0 (next minor)
+## Next: configurable rule options
 
 - **Configurable rule options**:
   - `minBase64Length` (default 24)
@@ -26,7 +28,7 @@ threat reports and user feedback.
 - **JSON file support** documented as a plugin recipe (using
   `eslint-plugin-jsonc`).
 
-## v0.3.0
+## Later: tool-description and input-schema rules
 
 - New rule `no-untrusted-tool-description` — flag string literals
   passed to MCP `Tool.description` / `Prompt.description` /
@@ -36,7 +38,7 @@ threat reports and user feedback.
   `inputSchema` is not a Zod object (or is `z.any()`). Helps enforce
   the strict input validation pattern used in `klodr/*` MCPs.
 
-## v0.4.0
+## Later: handler-hardening rules
 
 - New rule `no-eval-in-mcp-handler` — flag `eval`,
   `new Function(...)`, dynamic `require` inside MCP tool handlers.
