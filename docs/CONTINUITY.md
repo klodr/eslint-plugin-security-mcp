@@ -35,8 +35,9 @@ breaking changes require a major bump:
 
 ## Node / ESLint compatibility
 
-- **Node.js**: ≥ 20 (active LTS) — drops align with the official
-  Node release schedule.
+- **Node.js**: ≥ 24.18.1, tested on Node 24 and 26 — the floor moves
+  with the official Node release schedule (next: Node 26 once Node 24
+  reaches end of life on 2028-04-30).
 - **ESLint**: ≥ 9 (flat-config era). ESLint 8 legacy `.eslintrc` is
   not supported and will not be back-ported.
 
