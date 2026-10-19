@@ -22,9 +22,11 @@ on:
   # `push: branches: [main]` directly would race those workflows and
   # the GitHub Release tag-creation call would be rejected because
   # the squash commit is fresh and the checks are still pending.
+  # workflow_run matches the workflow's `name:`, not its file name:
+  # codeql.yml is named "CodeQL Advanced".
   workflow_run:
     workflows:
-      - CodeQL
+      - CodeQL Advanced
     types: [completed]
     branches: [main]
   workflow_dispatch: {}
