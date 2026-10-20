@@ -215,16 +215,21 @@ jobs:
             exit 1
           fi
           jq '.[0].bundle' npm-slsa.list.json > npm-slsa.sigstore.json
+          # npm subjects carry only a sha512 digest. Given the blob, cosign
+          # v3.0.x (the cosign-installer default) matches its sha256 and
+          # rejects the statement ("provided artifact digests does not
+          # match"), so pass the tarball's own SHA-512 explicitly.
+          ACTUAL_SHA512=$(sha512sum "$TARBALL" | awk '{print $1}')
           cosign verify-blob-attestation \
             --type slsaprovenance1 \
             --bundle npm-slsa.sigstore.json \
             --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${TAG}" \
             --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-            "$TARBALL"
+            --digest "$ACTUAL_SHA512" \
+            --digestAlg sha512
           STATEMENT=$(jq -r '.dsseEnvelope.payload' npm-slsa.sigstore.json | base64 -d)
           SUBJECT_SHA512=$(printf '%s' "$STATEMENT" | jq -r --arg n "pkg:npm/${PKG}@${VERSION}" \
             '[.subject[] | select(.name == $n) | .digest.sha512 // empty] | first // empty')
-          ACTUAL_SHA512=$(sha512sum "$TARBALL" | awk '{print $1}')
           if [ -z "$SUBJECT_SHA512" ] || [ "$SUBJECT_SHA512" != "$ACTUAL_SHA512" ]; then
             echo "ERROR: SLSA subject pkg:npm/${PKG}@${VERSION} does not carry the tarball SHA-512" >&2
             echo "  provenance: ${SUBJECT_SHA512:-<none>}" >&2
