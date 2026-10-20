@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.3.0...v0.3.1) (2026-10-19)
+
+
+### Changed
+
+* bump actions/create-github-app-token from 3.2.0 to 3.3.0 in the github-actions group across 1 directory ([#115](https://github.com/klodr/eslint-plugin-security-mcp/issues/115)) ([7d24dd9](https://github.com/klodr/eslint-plugin-security-mcp/commit/7d24dd9e2c984e335a8e5b48be0d97e5d5191712))
+* **release:** fix release-please trigger and gate workflow names ([#120](https://github.com/klodr/eslint-plugin-security-mcp/issues/120)) ([78ea64b](https://github.com/klodr/eslint-plugin-security-mcp/commit/78ea64b94a2c897580b2cab899e6036b7ac25894))
+* **release:** publish via npm OIDC and record the node 24 floor ([#119](https://github.com/klodr/eslint-plugin-security-mcp/issues/119)) ([ae8b9fb](https://github.com/klodr/eslint-plugin-security-mcp/commit/ae8b9fb34139081f738aec4fc3bfc80fdf48fbc0))
+
 ## [0.3.0](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.2.0...v0.3.0) (2026-10-19)
 
 
