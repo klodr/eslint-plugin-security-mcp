@@ -110,22 +110,32 @@ jobs:
           # Fetch the attestation document itself. The packument carrying
           # `.dist.attestations.url` is not enough on its own: a stale,
           # empty, or temporarily-unreachable document would otherwise
-          # let Path 1 pass silently. Validate that the body is non-empty
-          # AND that the first JSONL row is a DSSE bundle (`.payloadType`).
+          # let Path 1 pass silently. The registry answers with one JSON
+          # object, `{"attestations": [{predicateType, bundle}, ...]}`
+          # (the npm publish attestation and the SLSA provenance), not
+          # JSONL. Require a non-empty list where every bundle carries a
+          # signed DSSE envelope, and an SLSA provenance among them.
           curl --fail --show-error --silent --location \
                --retry 3 --retry-all-errors \
                --connect-timeout 10 --max-time 120 \
-               -o npm-attestations.jsonl "$ATT"
-          test -s npm-attestations.jsonl || {
+               -o npm-attestations.json "$ATT"
+          test -s npm-attestations.json || {
             echo "ERROR: npm attestation document at $ATT is empty" >&2
             exit 1
           }
-          head -1 npm-attestations.jsonl | jq -e '.payloadType' > /dev/null || {
-            echo "ERROR: npm attestation document is not valid DSSE JSONL (first line missing .payloadType)" >&2
-            head -1 npm-attestations.jsonl >&2
+          jq -e '
+            (.attestations | type == "array" and length > 0)
+            and all(.attestations[];
+                    (.bundle.dsseEnvelope.payloadType | type == "string")
+                    and (.bundle.dsseEnvelope.signatures | length > 0))
+            and any(.attestations[];
+                    .predicateType | startswith("https://slsa.dev/provenance/"))
+          ' npm-attestations.json > /dev/null || {
+            echo "ERROR: npm attestation document is not a list of signed DSSE bundles with an SLSA provenance" >&2
+            jq -c '[.attestations[]? | {predicateType, payloadType: .bundle.dsseEnvelope.payloadType}]' npm-attestations.json >&2 || head -c 500 npm-attestations.json >&2
             exit 1
           }
-          echo "npm attestations: $(wc -l < npm-attestations.jsonl) row(s) fetched from $ATT"
+          echo "npm attestations: $(jq -r '[.attestations[].predicateType] | join(", ")' npm-attestations.json) fetched from $ATT"
           curl --fail --show-error --silent --location \
                --retry 3 --retry-all-errors \
                --connect-timeout 10 --max-time 120 \
@@ -231,10 +241,8 @@ jobs:
           set -euo pipefail
           # JSONL: typically one DSSE envelope per file but the format
           # is multi-row. Concatenating `.payload` across rows via `jq`
-          # would corrupt the base64 decode — read only the first row,
-          # mirroring the `head -1` discipline already applied to
-          # `npm-attestations.jsonl` in Path 1. `.payload` is base64-
-          # encoded in-toto Statement (v0.1 or v1).
+          # would corrupt the base64 decode — read only the first row.
+          # `.payload` is a base64-encoded in-toto Statement (v0.1 or v1).
           # `actions/attest-build-provenance` currently emits v1
           # (`https://in-toto.io/Statement/v1`).
           PAYLOAD=$(head -1 verify-assets/index.js.intoto.jsonl \
