@@ -29,6 +29,9 @@ jobs:
     env:
       PKG: "eslint-plugin-security-mcp"
       TAG: ${{ github.event.workflow_run.head_branch }}
+      # Commit the release run built (the tag's target); Path 1 checks the
+      # npm SLSA provenance points at it.
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - name: Validate TAG format (semver, no shell metacharacters)
         # head_branch is whatever ref triggered the upstream workflow. We
@@ -196,7 +199,52 @@ jobs:
             exit 1
           fi
           echo "npm registry signature: OK ($KEYID)"
-          echo "Path 1 OK: SHA-1 + SHA-512 SRI + ECDSA registry signature all matched."
+
+          # Bind the npm SLSA provenance to THIS tarball and THIS release.
+          # The checks on npm-attestations.json above only cover its shape.
+          # cosign verifies the Sigstore bundle cryptographically (Fulcio
+          # certificate for release.yml at this exact tag, Rekor entry, DSSE
+          # signature) and that the in-toto subject matches the tarball
+          # bytes; the decoded statement must then name this package
+          # version, carry the tarball's SHA-512 (lowercase hex, not the
+          # base64 SRI) and point at the commit the release run built.
+          jq '[.attestations[] | select(.predicateType | startswith("https://slsa.dev/provenance/"))]' \
+            npm-attestations.json > npm-slsa.list.json
+          if [ "$(jq 'length' npm-slsa.list.json)" -ne 1 ]; then
+            echo "ERROR: expected exactly one SLSA provenance in the npm attestations" >&2
+            exit 1
+          fi
+          jq '.[0].bundle' npm-slsa.list.json > npm-slsa.sigstore.json
+          cosign verify-blob-attestation \
+            --type slsaprovenance1 \
+            --bundle npm-slsa.sigstore.json \
+            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${TAG}" \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "$TARBALL"
+          STATEMENT=$(jq -r '.dsseEnvelope.payload' npm-slsa.sigstore.json | base64 -d)
+          SUBJECT_SHA512=$(printf '%s' "$STATEMENT" | jq -r --arg n "pkg:npm/${PKG}@${VERSION}" \
+            '[.subject[] | select(.name == $n) | .digest.sha512 // empty] | first // empty')
+          ACTUAL_SHA512=$(sha512sum "$TARBALL" | awk '{print $1}')
+          if [ -z "$SUBJECT_SHA512" ] || [ "$SUBJECT_SHA512" != "$ACTUAL_SHA512" ]; then
+            echo "ERROR: SLSA subject pkg:npm/${PKG}@${VERSION} does not carry the tarball SHA-512" >&2
+            echo "  provenance: ${SUBJECT_SHA512:-<none>}" >&2
+            echo "  tarball:    $ACTUAL_SHA512" >&2
+            exit 1
+          fi
+          SRC_COMMIT=$(printf '%s' "$STATEMENT" | jq -r \
+            '[.predicate.buildDefinition.resolvedDependencies[]? | .digest.gitCommit // empty] | first // empty')
+          WF_REF=$(printf '%s' "$STATEMENT" | jq -r '.predicate.buildDefinition.externalParameters.workflow.ref // empty')
+          WF_REPO=$(printf '%s' "$STATEMENT" | jq -r '.predicate.buildDefinition.externalParameters.workflow.repository // empty')
+          if [ "$SRC_COMMIT" != "$RELEASE_SHA" ] || [ "$WF_REF" != "refs/tags/${TAG}" ] \
+             || [ "$WF_REPO" != "https://github.com/${GITHUB_REPOSITORY}" ]; then
+            echo "ERROR: SLSA provenance does not point at this release" >&2
+            echo "  commit:     ${SRC_COMMIT:-<none>} (release run built $RELEASE_SHA)" >&2
+            echo "  ref:        ${WF_REF:-<none>} (expected refs/tags/${TAG})" >&2
+            echo "  repository: ${WF_REPO:-<none>}" >&2
+            exit 1
+          fi
+          echo "npm SLSA provenance: OK (signature, tarball SHA-512, commit $SRC_COMMIT, $WF_REF)"
+          echo "Path 1 OK: SHA-1 + SHA-512 SRI + ECDSA registry signature + SLSA provenance all matched."
           # NB: no `npm install` / `npm audit signatures` step. Everything
           # `npm audit signatures` would have checked is already done above
           # (and more strictly): the tarball bytes are SHA-512 verified
