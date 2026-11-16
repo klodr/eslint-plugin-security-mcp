@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.3.3...v0.3.4) (2026-11-16)
+
+
+### Changed
+
+* bump the github-actions group across 1 directory with 5 updates ([#133](https://github.com/klodr/eslint-plugin-security-mcp/issues/133)) ([e730a15](https://github.com/klodr/eslint-plugin-security-mcp/commit/e730a154dc1f3a60117e23b854a395ff906a0ccf))
+* **deps-dev:** bump the dev-dependencies group across 1 directory with 6 updates ([#129](https://github.com/klodr/eslint-plugin-security-mcp/issues/129)) ([fd76780](https://github.com/klodr/eslint-plugin-security-mcp/commit/fd76780758ca8659e055809cdd1310015162e045))
+* **deps:** pin minimatch, re2js, markdown-it, fast-uri overrides ([#131](https://github.com/klodr/eslint-plugin-security-mcp/issues/131)) ([d2eb60b](https://github.com/klodr/eslint-plugin-security-mcp/commit/d2eb60bc3acd03e990ac98ca15501ae7daa10e50))
+
 ## [0.3.3](https://github.com/klodr/eslint-plugin-security-mcp/compare/v0.3.2...v0.3.3) (2026-10-20)
 
 
